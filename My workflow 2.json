@@ -1,0 +1,488 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "0f37242b-36ec-4abf-9435-5e294b78172e",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        -1400,
+        380
+      ],
+      "webhookId": "912e007f-19d9-4b5a-a90e-12ba01c9978d",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "HDylQ68vsPp2kgnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "id": "e684ede4-f75c-499d-8fff-e65c1315041e",
+      "name": "Get Voice",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -840,
+        580
+      ],
+      "webhookId": "1962cd81-9991-4199-a78a-2250bf29631a",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "K5aSgCBnH5IidTsR",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "0a236099-525e-4748-a57d-8b8e2c63c48b",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "24b7e8b8-6fce-4ddc-94b6-30b852891995",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{  $json.message.voice.file_id }}",
+                    "rightValue": ""
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "71586182-1167-4acd-95a7-5c7e4385d9f1",
+      "name": "Text Or Voice",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -980,
+        380
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "={{ $json.message.text }}",
+        "additionalFields": {}
+      },
+      "id": "f901aea4-6975-4a81-be00-fd1fdce4bdab",
+      "name": "Typing Action",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        -980,
+        200
+      ],
+      "webhookId": "2479f7f8-6d54-4d45-921e-af6dcfae768e",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "HDylQ68vsPp2kgnv",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "590b803f-833c-4854-bde7-5241d25b2b32",
+              "name": "message.text",
+              "type": "string",
+              "value": "={{ $json.message.text }}"
+            },
+            {
+              "id": "303e0b5d-3d37-48fc-bbd3-ce62dbe7ef78",
+              "name": "sessionId",
+              "type": "string",
+              "value": "={{ $json.message.chat.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d7d4f4db-e66e-49a0-9078-363d4eed9cdf",
+      "name": "Send Context To AI Agent",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -560,
+        140
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2bb71aef-0ca1-4c26-95e1-c0c83bc82068",
+              "name": "message.text",
+              "type": "string",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "id": "692a2bae-35da-41d3-be8d-32c0f5dfbbef",
+              "name": "sessionId",
+              "type": "string",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bf07542f-c382-4ad4-87c0-9ecdfeb71309",
+      "name": "Send Transcribe Context To AI Agent",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -500,
+        860
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Analyze this multilingual audio, transcribe with speaker and language labels, translate everything to English, summarize key points, and return the response as English audio.\n",
+        "options": {
+          "systemMessage": "=👋 Hello {{ $json.message.from.first_name || 'there' }}!\n\n✅ Your message has been received. Our team will get back to you shortly.\n\n📌 If you need immediate assistance, please provide more details about your request.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -600,
+        440
+      ],
+      "id": "ab2b3682-d916-4204-880d-cacf169cbcb7",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/learnlm-2.0-flash-experimental",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -580,
+        660
+      ],
+      "id": "b28f8b96-1f58-445e-81f6-12156d0684be",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "HhoOOI4o3NIo2Y7i",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -460,
+        680
+      ],
+      "id": "c4f0be30-f461-4700-9bed-6fb28d2f5fb8",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        -360,
+        660
+      ],
+      "id": "20e90593-d838-459d-8e54-305a5d5ac7d6",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Answer the questions as a well educated and the answers should be like well-defined about the particular topic the user defined. Don't stay out of the data. Think before answer also integrate your whole database for the user question \nThe text is: {{ $json.message }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "58385718-9f3d-4b2a-ac7a-cd2b8185861c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        20,
+        200
+      ],
+      "id": "33527eb7-88e7-4ffa-890c-68cdf01edbc7",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "HhoOOI4o3NIo2Y7i",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        220
+      ],
+      "id": "2d90d002-2858-4d3e-adcd-e3ae89aa72a8",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "{{ $json.output }}",
+        "additionalFields": {}
+      },
+      "id": "aab8d4a3-3731-4369-8ca5-23d11698bd4a",
+      "name": "Send Response To Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        600,
+        640
+      ],
+      "webhookId": "76e4b8a4-1086-4d24-b60e-b96942d83bdf",
+      "typeVersion": 1.2,
+      "credentials": {
+        "telegramApi": {
+          "id": "K5aSgCBnH5IidTsR",
+          "name": "Telegram account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Voice": {
+      "main": [
+        [
+          {
+            "node": "Send Transcribe Context To AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Or Voice": {
+      "main": [
+        [
+          {
+            "node": "Send Context To AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text Or Voice",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Typing Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Context To AI Agent": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Transcribe Context To AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Response To Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send Response To Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Response To Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "27e84221-08bd-4a49-a8ff-2aaf49f964f6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "72c1db097aa2309e4189130f7662cd41ae73ad4a2fbac9d0e4f14e34254a6216"
+  },
+  "id": "h3PqRIkfbmqSQuds",
+  "tags": []
+}
